@@ -1,0 +1,83 @@
+def to_articles():
+    os.mkdir('./data/articles')
+    p = './data/union'
+    for f in os.listdir(p):
+        f = p + '/' + f
+        with open(f) as file:
+            text = file.read()
+            for t in text.split('\n\n')[:-1]:
+                id = re.findall('\{id:(\d+)}', t)[0]
+                name = id + '.tsv'
+                path = '/home/valeria/PycharmProjects/Pogrom/data/articles/' + name
+                # print(path)
+                with open(path, 'w') as file_to_write:
+                    file_to_write.write(t)
+
+
+def to_categories():
+    path = './data/cats'
+    os.mkdir(path)
+    for f in os.listdir('./data/articles'):
+        name = f
+        f = './data/articles/' + f
+        # print(f)
+        with open(f, 'r') as file:
+            text = file.readlines()
+            topics = text[1].rstrip('\n').rstrip('}').lstrip('{').split('|')
+            for topic in topics:
+                topic = topic.split('/')
+                # print(topic)
+                # dirlist = os.listdir(path)
+                path1 = path +'/' + topic[0]
+                path2 = path1 + '/' + topic[1]
+                if not topic[0] in os.listdir(path):
+                    os.mkdir(path1)
+                if not topic[1] in os.listdir(path1):
+                    os.mkdir(path2)
+                final_path = path2 + '/' + name
+                # print(final_path)
+                with open(final_path, 'w') as file_to_write:
+                    file_to_write.write(''.join(text[2:]))
+
+
+def to_nlp():
+    path = './data/cats/Natural Language Processing'
+    with open('./data/nlp.txt', 'w') as file_to_write:
+        for roots, dirs, files in os.walk(path):
+            # print(roots, files)
+            for file in files:
+                filename = roots + '/' + file
+                # print(filename)
+                with open(filename, 'r') as f:
+                    text = f.read()
+                    lines = text.split('\n')
+                    # print(lines[:5])
+                    for line in lines:
+                        line = line.split('\t')
+                        # print(line)
+                        if float(line[2]) < 1 and 'муж' in line[3]:
+                            file_to_write.write(line[0])
+                            file_to_write.write('\n')
+
+
+def to_freq():
+    list_of_names = [str(i*100) + '.union' for i in range(7)]
+    # print(list_of_names)
+    path = './data/union/'
+    for name in list_of_names:
+        lemm_file = path + name.split('.')[0] + '.dict'
+        # print(lemm_file)
+        with open(path+name, 'r') as file:
+            lines = file.readlines()
+            lemm_list = []
+            for line in lines:
+                # print(line)
+                if line[0] != '{' and line != '\n':
+                    lemm_list.append(line.split('\t')[1])
+            cnt = Counter(lemm_list).most_common()
+            # print(cnt[:10])
+            with open(lemm_file, 'w') as file_to_write:
+                for thing in cnt:
+                    to_write = thing[0] + ',' + str(round(thing[1]/len(lemm_list), 5))
+                    file_to_write.write(to_write)
+                    file_to_write.write('\n')
